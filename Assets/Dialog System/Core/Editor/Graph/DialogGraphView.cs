@@ -87,6 +87,13 @@ public class DialogGraphView : GraphView
         Port inputPort = GeneratePort(node, Direction.Input, Port.Capacity.Multi);
         node.inputContainer.Add(inputPort);
 
+        //Add HasChoices Toggle
+        Toggle logNode = new Toggle("Logic Node:");
+        node.LogicNodeBool = logNode;
+        logNode.value = ds.LogicNode;
+        logNode.RegisterValueChangedCallback(evt => ds.LogicNode = evt.newValue);
+        node.extensionContainer.Add(logNode);
+
         //Add Button
         Button button = new Button(() => { AddChoicePort(node); });
         button.text = "New Choice";

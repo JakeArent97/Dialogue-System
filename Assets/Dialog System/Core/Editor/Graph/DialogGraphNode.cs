@@ -13,4 +13,6 @@ public class DialogGraphNode : Node
     public bool EntryPoint = false;
 
     public Toggle choicesBool;
+
+    public Toggle LogicNodeBool;
 }

@@ -29,7 +29,7 @@ public class GraphSaveUtility
         if (!edges.Any())
             return;
         DialogGraphAsset asset = ScriptableObject.CreateInstance<DialogGraphAsset>();
-        string filePath = "Assets/New Folder/Dialogs/" + fileName + ".asset";
+        string filePath = "Assets/Dialog System/Dialogs/" + fileName + ".asset";
         bool updating = false;
         if (AssetDatabase.LoadAssetAtPath(filePath, typeof(DialogGraphAsset)) != null)
         {
