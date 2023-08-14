@@ -51,6 +51,13 @@ public class DialogGraph : EditorWindow
         Button NodeCreateButton = new Button(() => { dialogGraphView.CreateNode(new DialogSegment()); });
         NodeCreateButton.text = "Create Node";
         t.Add(NodeCreateButton);
+
+        //Logic Node Button
+        Button LogicNodeCreateButton = new Button(() => { dialogGraphView.CreateNode(new DialogLogicSegment()); });
+        LogicNodeCreateButton.text = "Create Logic Node";
+        t.Add(LogicNodeCreateButton);
+
+        //
         rootVisualElement.Add(t);
     }
 
@@ -68,7 +75,7 @@ public class DialogGraph : EditorWindow
         }
         else
         {
-            su.LoadData("Assets/New Folder/Dialogs/" + fileName + ".asset");
+            su.LoadData("Assets/Dialog System/Dialogs/" + fileName + ".asset");
         }
     }
 

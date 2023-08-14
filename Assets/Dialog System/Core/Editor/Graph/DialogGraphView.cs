@@ -66,6 +66,15 @@ public class DialogGraphView : GraphView
         return compPorts;
     }
 
+    public void CreateNode(DialogLogicSegment dls)
+    {
+        DialogGraphNode n = CreateDialogNode(dls);
+        Vector2 pos = new Vector2(viewTransform.position.x, viewTransform.position.y) * -1;
+        pos += new Vector2(viewport.contentRect.width / 2, viewport.contentRect.height / 2);
+        n.SetPosition(new Rect(pos, defNodeSize));
+        AddElement(n);
+    }
+
     public void CreateNode(DialogSegment ds)
     {
         DialogGraphNode n = CreateDialogNode(ds);
@@ -75,9 +84,53 @@ public class DialogGraphView : GraphView
         AddElement(n);
     }
 
-    public DialogGraphNode CreateDialogNode(DialogSegment ds)
+    public DialogGraphLogicNode CreateDialogNode(DialogLogicSegment dls)
     {
-        DialogGraphNode node = new DialogGraphNode
+        DialogGraphLogicNode node = new DialogGraphLogicNode
+        {
+            title = "Logic Node",
+            GUID = Guid.NewGuid().ToString(),
+            logicSegment = dls
+        };
+        //Setup
+        Port inputPort = GeneratePort(node, Direction.Input, Port.Capacity.Multi);
+        node.inputContainer.Add(inputPort);
+
+        //Add Default
+        Port DefaultOption = GeneratePort(node, Direction.Output);
+        DefaultOption.contentContainer.Q<Label>("type").text = "Default";
+        node.outputContainer.Add(DefaultOption);
+
+        //Add Button
+        Button button = new Button(() => { AddChoicePort(node); });
+        button.text = "New Choice";
+        node.titleContainer.Add(button);
+
+        //Add Enter Effect
+        Label EnterEffectLabel = new Label();
+        Label l2 = new Label();
+        EnterEffectLabel.text = "Entry Effects";
+        l2.text = " ";
+        node.extensionContainer.Add(EnterEffectLabel);
+        ObjectField tc = new ObjectField();
+        tc.objectType = typeof(ActionEffect);
+        if (dls.EffectsOnEnter != null)
+            tc.value = dls.EffectsOnEnter;
+        tc.RegisterValueChangedCallback(evt => dls.EffectsOnEnter = (ActionEffect)evt.newValue);
+        EnterEffectLabel.Add(l2);
+        EnterEffectLabel.Add(tc);
+
+        //Return
+        //Refresh
+        node.RefreshExpandedState();
+        node.RefreshPorts();
+        node.SetPosition(new Rect(new Vector2(100, 100), defNodeSize));
+        return node;
+    }
+
+    public DialogGraphStandardNode CreateDialogNode(DialogSegment ds)
+    {
+        DialogGraphStandardNode node = new DialogGraphStandardNode
         {
             title = "Node",
             dialogSegment = ds,
@@ -86,13 +139,6 @@ public class DialogGraphView : GraphView
 
         Port inputPort = GeneratePort(node, Direction.Input, Port.Capacity.Multi);
         node.inputContainer.Add(inputPort);
-
-        //Add HasChoices Toggle
-        Toggle logNode = new Toggle("Logic Node:");
-        node.LogicNodeBool = logNode;
-        logNode.value = ds.LogicNode;
-        logNode.RegisterValueChangedCallback(evt => ds.LogicNode = evt.newValue);
-        node.extensionContainer.Add(logNode);
 
         //Add Button
         Button button = new Button(() => { AddChoicePort(node); });
@@ -198,9 +244,13 @@ public class DialogGraphView : GraphView
             text = "x"
         };
         //Check if more than 2 ports
-        if (node.outputContainer.childCount >= 1 && !loadFunc)
+        if (node is DialogGraphStandardNode)
         {
-            node.choicesBool.value = true;
+            if (node.outputContainer.childCount >= 1 && !loadFunc)
+            {
+                DialogGraphStandardNode stanNode = node as DialogGraphStandardNode;
+                stanNode.choicesBool.value = true;
+            }
         }
         genPort.contentContainer.Add(bufferLabel);
         genPort.contentContainer.Add(textField);
@@ -224,10 +274,13 @@ public class DialogGraphView : GraphView
             edge.input.Disconnect(edge);
             RemoveElement(edge);
         }
-
-        if (dialogNode.outputContainer.childCount < 2)
+        if (dialogNode is DialogGraphStandardNode)
         {
-            dialogNode.choicesBool.value = false;
+            DialogGraphStandardNode dsn = dialogNode as DialogGraphStandardNode;
+            if (dialogNode.outputContainer.childCount < 2)
+            {
+                dsn.choicesBool.value = false;
+            }
         }
 
         dialogNode.outputContainer.Remove(generatedPort);

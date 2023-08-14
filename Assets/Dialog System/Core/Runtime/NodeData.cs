@@ -6,6 +6,8 @@ using UnityEngine;
 public class NodeData
 {
     public string GUID;
+    public bool StandardNode;
     public DialogSegment seg;
+    public DialogLogicSegment lSeg;
     public Vector2 position;
 }

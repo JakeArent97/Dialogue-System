@@ -55,47 +55,97 @@ public class GraphSaveUtility
         asset.Nodes.Clear();
         foreach (DialogGraphNode n in nodes)
         {
+            
             if (n.EntryPoint)
             {
                 asset.EntryGUID = n.GUID;
             }
             else
             {
-                n.dialogSegment.Choices.Clear();
-                foreach (VisualElement child in n.outputContainer.Children())
+                if (n is DialogGraphStandardNode)
                 {
-                    Port childPort = (Port)child;
-                    DialogChoice dc = new DialogChoice();
-                    dc.ChoiceText = childPort.portName;
-                    if (childPort.connected)
+                    DialogGraphStandardNode stan = n as DialogGraphStandardNode;
+
+                    stan.dialogSegment.Choices.Clear();
+                    foreach (VisualElement child in n.outputContainer.Children())
                     {
-                        NodeLinkData link = asset.Links.First(x => x.BaseNodeGUID == n.GUID && x.PortName == childPort.portName);
-                        DialogGraphNode linkedNode = nodes.First(x => x.GUID == link.TargetNodeGUID);
-                        dc.Link = linkedNode.GUID;
-                    }
-                    //Get Validators
-                    foreach (VisualElement v in child.contentContainer.Children())
-                    {
-                        if (v.GetType() == typeof(ObjectField))
+                        Port childPort = (Port)child;
+                        DialogChoice dc = new DialogChoice();
+                        dc.ChoiceText = childPort.portName;
+                        if (childPort.connected)
                         {
-                            ObjectField field = (ObjectField)v;
-                            if (field.objectType == typeof(DialogValidator) && field.value != null)
+                            NodeLinkData link = asset.Links.First(x => x.BaseNodeGUID == n.GUID && x.PortName == childPort.portName);
+                            DialogGraphNode linkedNode = nodes.First(x => x.GUID == link.TargetNodeGUID);
+                            dc.Link = linkedNode.GUID;
+                        }
+                        //Get Validators
+                        foreach (VisualElement v in child.contentContainer.Children())
+                        {
+                            if (v.GetType() == typeof(ObjectField))
                             {
-                                dc.Validator = (DialogValidator)field.value;
+                                ObjectField field = (ObjectField)v;
+                                if (field.objectType == typeof(DialogValidator) && field.value != null)
+                                {
+                                    dc.Validator = (DialogValidator)field.value;
+                                }
                             }
                         }
+                        stan.dialogSegment.Choices.Add(dc);
                     }
-                    n.dialogSegment.Choices.Add(dc);
-                }
 
-                NodeData newNodeData = new NodeData()
+
+                    NodeData newNodeData = new NodeData()
+                    {
+                        GUID = n.GUID,
+                        StandardNode = true,
+                        seg = stan.dialogSegment,
+                        position = n.GetPosition().position
+                    };
+                    asset.Nodes.Add(newNodeData);
+                }
+                else if (n is DialogGraphLogicNode)
                 {
-                    GUID = n.GUID,
-                    seg = n.dialogSegment,
-                    position = n.GetPosition().position
-                };
-                asset.Nodes.Add(newNodeData);
+                    DialogGraphLogicNode stan = n as DialogGraphLogicNode;
+
+                    stan.logicSegment.Choices.Clear();
+                    foreach (VisualElement child in n.outputContainer.Children())
+                    {
+                        Port childPort = (Port)child;
+                        DialogChoice dc = new DialogChoice();
+                        dc.ChoiceText = childPort.portName;
+                        if (childPort.connected)
+                        {
+                            NodeLinkData link = asset.Links.First(x => x.BaseNodeGUID == n.GUID && x.PortName == childPort.portName);
+                            DialogGraphNode linkedNode = nodes.First(x => x.GUID == link.TargetNodeGUID);
+                            dc.Link = linkedNode.GUID;
+                        }
+                        //Get Validators
+                        foreach (VisualElement v in child.contentContainer.Children())
+                        {
+                            if (v.GetType() == typeof(ObjectField))
+                            {
+                                ObjectField field = (ObjectField)v;
+                                if (field.objectType == typeof(DialogValidator) && field.value != null)
+                                {
+                                    dc.Validator = (DialogValidator)field.value;
+                                }
+                            }
+                        }
+                        stan.logicSegment.Choices.Add(dc);
+                    }
+
+
+                    NodeData newNodeData = new NodeData()
+                    {
+                        GUID = n.GUID,
+                        StandardNode = true,
+                        lSeg = stan.logicSegment,
+                        position = n.GetPosition().position
+                    };
+                    asset.Nodes.Add(newNodeData);
+                }
             }
+            
         }
 
         if (updating)
@@ -174,37 +224,43 @@ public class GraphSaveUtility
         foreach (NodeData nd in cachedContainer.Nodes)
         {
             //load node
-            var tempNode = targetGraph.CreateDialogNode(nd.seg);
-            tempNode.GUID = nd.GUID;
-            targetGraph.AddElement(tempNode);
-
-            //create ports
-            /*
-            var nodePorts = cachedContainer.Links.Where(x => x.BaseNodeGUID == nd.GUID).ToList();
-            nodePorts.ForEach(x => targetGraph.AddChoicePort(tempNode, x.PortName));
-            //*
-            if (nd.seg.hasChoices)
+            if (nd.StandardNode)
             {
+                //Standard Node
+                DialogGraphStandardNode tempNode = targetGraph.CreateDialogNode(nd.seg);
+                tempNode.GUID = nd.GUID;
+                targetGraph.AddElement(tempNode);
+
+                //Ports
                 foreach (DialogChoice dc in nd.seg.Choices)
                 {
-                    targetGraph.AddChoicePort(tempNode, dc.ChoiceText);
+                    DialogValidator dv = null;
+                    if (dc.Validator != null)
+                        dv = dc.Validator;
+                    targetGraph.AddChoicePort(tempNode, dc.ChoiceText, dv, true);
                 }
+                //Set Position
+                tempNode.SetPosition(new Rect(nd.position, DialogGraphView.defNodeSize));
             }
             else
             {
-                if (nd.seg.GetNextDialog() != null)
-                    targetGraph.AddChoicePort(tempNode);
+                //Logic Node
+                DialogGraphLogicNode tempNode = targetGraph.CreateDialogNode(nd.lSeg);
+                tempNode.GUID = nd.GUID;
+                targetGraph.AddElement(tempNode);
+
+                //Ports
+                foreach (DialogChoice dc in nd.seg.Choices)
+                {
+                    DialogValidator dv = null;
+                    if (dc.Validator != null)
+                        dv = dc.Validator;
+                    targetGraph.AddChoicePort(tempNode, dc.ChoiceText, dv, true);
+                }
+                //Set Position
+                tempNode.SetPosition(new Rect(nd.position, DialogGraphView.defNodeSize));
             }
-            */
-            foreach (DialogChoice dc in nd.seg.Choices)
-            {
-                DialogValidator dv = null;
-                if (dc.Validator != null)
-                    dv = dc.Validator;
-                targetGraph.AddChoicePort(tempNode, dc.ChoiceText,dv,true);
-            }
-            //Set Position
-            tempNode.SetPosition(new Rect(nd.position, DialogGraphView.defNodeSize));
+            
         }
     }
 

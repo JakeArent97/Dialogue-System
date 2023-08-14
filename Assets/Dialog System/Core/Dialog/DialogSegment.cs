@@ -6,9 +6,8 @@ using UnityEngine;
 public class DialogSegment
 {
     public string Intro;
-    public bool LogicNode; //If true, is only used for routing and logic. Will not display Text
     public bool hasChoices; //If true, will display buttons to click
-    [SerializeField]private string NextDialogID;
+    [SerializeField] private string NextDialogID;
     [SerializeField] public List<DialogChoice> Choices = new List<DialogChoice>();
     [SerializeField] public ActionEffect EffectsOnEnter;
     public string Speaker;
@@ -28,6 +27,7 @@ public class DialogSegment
     {
         return NextDialogID;
     }
+
 
     public List<DialogChoice> GetDialogChoices()
     {

@@ -8,11 +8,5 @@ public class DialogGraphNode : Node
 {
     public string GUID;
 
-    public DialogSegment dialogSegment;
-
     public bool EntryPoint = false;
-
-    public Toggle choicesBool;
-
-    public Toggle LogicNodeBool;
 }
