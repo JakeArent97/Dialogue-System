@@ -6,8 +6,12 @@ using UnityEngine;
 public class DialogLogicSegment 
 {
     public enum LogicTypes { String, Integer, Boolean};
-    [SerializeField] public DialogChoice Default;
-    [SerializeField] public List<DialogChoice> Choices = new List<DialogChoice>();
+    public enum IntCompTypes { Equals, LessThan, GreaterThanOrEqual};
+    [SerializeField] public LogicTypes lTypeUsed = LogicTypes.Integer;
+    [SerializeField] public LogicChoice Default;
+    [SerializeField] public LogicChoice b_True;
+    [SerializeField] public LogicChoice b_False;
+    [SerializeField] public List<LogicChoice> Choices = new List<LogicChoice>();
     [SerializeField] public ActionEffect EffectsOnEnter;
     [SerializeField] public DialogLogicBase ConditionToTest;
 }

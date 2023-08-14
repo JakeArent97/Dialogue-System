@@ -115,30 +115,24 @@ public class GraphSaveUtility
                     stan.logicSegment.Choices.Clear();
                     foreach (VisualElement child in n.outputContainer.Children())
                     {
-                        Port childPort = (Port)child;
-                        if (childPort.title == "Default" || childPort.portName == "Default")
-                            continue;
-                        DialogChoice dc = new DialogChoice();
-                        dc.ChoiceText = childPort.portName;
-                        if (childPort.connected)
+                        if (child is Port)
                         {
-                            NodeLinkData link = asset.Links.First(x => x.BaseNodeGUID == n.GUID && x.PortName == childPort.portName);
-                            DialogGraphNode linkedNode = nodes.First(x => x.GUID == link.TargetNodeGUID);
-                            dc.Link = linkedNode.GUID;
-                        }
-                        //Get Validators
-                        foreach (VisualElement v in child.contentContainer.Children())
-                        {
-                            if (v.GetType() == typeof(ObjectField))
+                            Port childPort = (Port)child;
+                            if (childPort.title == "Default" || childPort.portName == "Default")
+                                continue;
+                            LogicChoice dc = new LogicChoice();
+                            //Name & connection
+                            dc.ChoiceText = childPort.portName;
+                            if (childPort.connected)
                             {
-                                ObjectField field = (ObjectField)v;
-                                if (field.objectType == typeof(DialogValidator) && field.value != null)
-                                {
-                                    dc.Validator = (DialogValidator)field.value;
-                                }
+                                NodeLinkData link = asset.Links.First(x => x.BaseNodeGUID == n.GUID && x.PortName == childPort.portName);
+                                DialogGraphNode linkedNode = nodes.First(x => x.GUID == link.TargetNodeGUID);
+                                dc.Link = linkedNode.GUID;
                             }
+                            //Types
+                            dc.l_Compare = stan.logicSegment.lTypeUsed;
+                            stan.logicSegment.Choices.Add(dc);
                         }
-                        stan.logicSegment.Choices.Add(dc);
                     }
 
 
@@ -254,16 +248,10 @@ public class GraphSaveUtility
                 //Logic Node
                 DialogGraphLogicNode tempNode = targetGraph.CreateDialogNode(nd.lSeg);
                 tempNode.GUID = nd.GUID;
+                tempNode.RebuildPorts(targetGraph);
                 targetGraph.AddElement(tempNode);
 
-                //Ports
-                foreach (DialogChoice dc in nd.lSeg.Choices)
-                {
-                    DialogValidator dv = null;
-                    if (dc.Validator != null)
-                        dv = dc.Validator;
-                    targetGraph.AddChoicePort(tempNode, dc.ChoiceText, dv, true);
-                }
+                
                 //Set Position
                 tempNode.SetPosition(new Rect(nd.position, DialogGraphView.defNodeSize));
             }

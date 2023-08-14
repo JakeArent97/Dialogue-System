@@ -29,7 +29,7 @@ public class DialogGraphView : GraphView
     }
     
 
-    private Port GeneratePort(DialogGraphNode node, Direction direction, Port.Capacity cap = Port.Capacity.Single)
+    public static Port GeneratePort(DialogGraphNode node, Direction direction, Port.Capacity cap = Port.Capacity.Single)
     {
         return node.InstantiatePort(Orientation.Horizontal, direction, cap, typeof(float));
     }
@@ -96,30 +96,8 @@ public class DialogGraphView : GraphView
         Port inputPort = GeneratePort(node, Direction.Input, Port.Capacity.Multi);
         node.inputContainer.Add(inputPort);
 
-        //Add Condition
-        Label ConditionLabel = new Label();
-        Label cl2 = new Label();
-        ConditionLabel.text = "Condition to Test:";
-        cl2.text = " ";
-        node.outputContainer.Add(ConditionLabel);
-        ObjectField oField = new ObjectField();
-        oField.objectType = typeof(DialogLogicBase);
-        if (dls.ConditionToTest != null)
-            oField.value = dls.ConditionToTest;
-        oField.RegisterValueChangedCallback(evt => dls.ConditionToTest = (DialogLogicBase)evt.newValue);
-        ConditionLabel.Add(cl2);
-        ConditionLabel.Add(oField);
-
-        //Add Default
-        Port DefaultOption = GeneratePort(node, Direction.Output);
-        DefaultOption.title = "Default";
-        DefaultOption.contentContainer.Q<Label>("type").text = "Default";
-        node.outputContainer.Add(DefaultOption);
-
-        //Add Button
-        Button button = new Button(() => { AddChoicePort(node); });
-        button.text = "New Choice";
-        node.titleContainer.Add(button);
+        //Add the Main Content
+        node.BuildOutputContainer(this);
 
         //Add Enter Effect
         Label EnterEffectLabel = new Label();
@@ -271,8 +249,6 @@ public class DialogGraphView : GraphView
         genPort.contentContainer.Add(textField);
         genPort.contentContainer.Add(validators);
         genPort.contentContainer.Add(deleteButton);
-
-
 
         //Add port content
         node.outputContainer.Add(genPort);
