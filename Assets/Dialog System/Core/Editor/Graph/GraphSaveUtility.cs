@@ -53,10 +53,6 @@ public class GraphSaveUtility
         }
 
         asset.Nodes.Clear();
-        if (System.Diagnostics.Debugger.IsAttached)
-        {
-            Debug.Log("Debugger Is Attached!");
-        }
         foreach (DialogGraphNode n in nodes)
         {
             
@@ -118,8 +114,8 @@ public class GraphSaveUtility
                         if (child is Port)
                         {
                             Port childPort = (Port)child;
-                            if (childPort.title == "Default" || childPort.portName == "Default")
-                                continue;
+                            //if (childPort.title == "Default" || childPort.portName == "Default")
+                               // continue;
                             LogicChoice dc = new LogicChoice();
                             //Name & connection
                             dc.ChoiceText = childPort.portName;
@@ -131,7 +127,24 @@ public class GraphSaveUtility
                             }
                             //Types
                             dc.l_Compare = stan.logicSegment.lTypeUsed;
-                            stan.logicSegment.Choices.Add(dc);
+                            if (stan.logicSegment.lTypeUsed == DialogLogicSegment.LogicTypes.Integer)
+                            {
+                                //Find the int
+                                foreach (VisualElement vChild in child.Children())
+                                {
+                                    if (vChild is EnumField)
+                                    {
+                                        EnumField enumChild = vChild as EnumField;
+                                        dc.i_Compare = (DialogLogicSegment.IntCompTypes)enumChild.value;
+                                    }
+                                }
+                            }
+                            if (childPort.title == "Default" || childPort.portName == "Default")
+                            {
+                                stan.logicSegment.Default = dc;
+                            }
+                            else
+                                stan.logicSegment.Choices.Add(dc);
                         }
                     }
 

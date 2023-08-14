@@ -18,7 +18,64 @@ public class DialogGraphAsset : ScriptableObject
 
     public DialogSegment GetSegment(string nodeID)
     {
-        return Nodes.First(x => x.GUID == nodeID).seg;
+        NodeData nd = Nodes.First(x => x.GUID == nodeID);
+        if (nd.StandardNode)
+            return nd.seg;
+        else
+        {
+            DialogLogicSegment dls = nd.lSeg;
+            //Bool
+            if (dls.lTypeUsed == DialogLogicSegment.LogicTypes.Boolean)
+            {
+                bool res = dls.ConditionToTest.GetResult<bool>();
+                if (res)
+                    return GetSegment(dls.b_True.Link);
+                else
+                    return GetSegment(dls.b_False.Link);
+            }
+            //Integer
+            else if (dls.lTypeUsed == DialogLogicSegment.LogicTypes.Integer)
+            {
+                int res = dls.ConditionToTest.GetResult<int>();
+                //Loop through the options
+                foreach (LogicChoice lc in dls.Choices)
+                {
+                    int parsed = -1;
+                    //Parse the input
+                    if (int.TryParse(lc.ChoiceText, out parsed))
+                    {
+                        //Perform the check based on the selected type
+                        switch (lc.i_Compare)
+                        {
+                            case DialogLogicSegment.IntCompTypes.Equals:
+                                if (res == parsed)
+                                    return GetSegment(lc.Link);
+                                break;
+                            case DialogLogicSegment.IntCompTypes.GreaterThanOrEqual:
+                                if (res >= parsed)
+                                    return GetSegment(lc.Link);
+                                break;
+                            case DialogLogicSegment.IntCompTypes.LessThan:
+                                if (res < parsed)
+                                    return GetSegment(lc.Link);
+                                break;
+                        }
+                    }
+                }
+                return GetSegment(dls.Default.Link);
+            }
+            else if (dls.lTypeUsed == DialogLogicSegment.LogicTypes.String)
+            {
+                string res = dls.ConditionToTest.GetResult<string>();
+                foreach (LogicChoice lc in dls.Choices)
+                {
+                    if (res == lc.ChoiceText)
+                        return GetSegment(lc.Link);
+                }
+                return GetSegment(dls.Default.Link);
+            }
+            return GetSegment(dls.Default.Link);
+        }
     }
 
     public List<NodeLinkData> GetOrphanedLinks()

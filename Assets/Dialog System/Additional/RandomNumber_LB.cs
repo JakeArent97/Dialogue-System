@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[CreateAssetMenu(fileName = "RNG", menuName = "Dialog/Logic Condition/Random Number")]
 public class RandomNumber_LB : DialogLogicBase
 {
     public int maxVal = 20;
