@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,6 +53,10 @@ public class GraphSaveUtility
         }
 
         asset.Nodes.Clear();
+        if (System.Diagnostics.Debugger.IsAttached)
+        {
+            Debug.Log("Debugger Is Attached!");
+        }
         foreach (DialogGraphNode n in nodes)
         {
             
@@ -105,12 +109,15 @@ public class GraphSaveUtility
                 }
                 else if (n is DialogGraphLogicNode)
                 {
+                    //Setup Logic Node
                     DialogGraphLogicNode stan = n as DialogGraphLogicNode;
 
                     stan.logicSegment.Choices.Clear();
                     foreach (VisualElement child in n.outputContainer.Children())
                     {
                         Port childPort = (Port)child;
+                        if (childPort.title == "Default" || childPort.portName == "Default")
+                            continue;
                         DialogChoice dc = new DialogChoice();
                         dc.ChoiceText = childPort.portName;
                         if (childPort.connected)
@@ -138,7 +145,7 @@ public class GraphSaveUtility
                     NodeData newNodeData = new NodeData()
                     {
                         GUID = n.GUID,
-                        StandardNode = true,
+                        StandardNode = false,
                         lSeg = stan.logicSegment,
                         position = n.GetPosition().position
                     };
@@ -250,7 +257,7 @@ public class GraphSaveUtility
                 targetGraph.AddElement(tempNode);
 
                 //Ports
-                foreach (DialogChoice dc in nd.seg.Choices)
+                foreach (DialogChoice dc in nd.lSeg.Choices)
                 {
                     DialogValidator dv = null;
                     if (dc.Validator != null)

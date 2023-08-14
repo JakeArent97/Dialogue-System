@@ -9,4 +9,6 @@ public class DialogGraphNode : Node
     public string GUID;
 
     public bool EntryPoint = false;
+
+    //public bool StandardNode = true;
 }

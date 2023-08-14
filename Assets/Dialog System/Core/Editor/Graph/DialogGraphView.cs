@@ -96,8 +96,23 @@ public class DialogGraphView : GraphView
         Port inputPort = GeneratePort(node, Direction.Input, Port.Capacity.Multi);
         node.inputContainer.Add(inputPort);
 
+        //Add Condition
+        Label ConditionLabel = new Label();
+        Label cl2 = new Label();
+        ConditionLabel.text = "Condition to Test:";
+        cl2.text = " ";
+        node.outputContainer.Add(ConditionLabel);
+        ObjectField oField = new ObjectField();
+        oField.objectType = typeof(DialogLogicBase);
+        if (dls.ConditionToTest != null)
+            oField.value = dls.ConditionToTest;
+        oField.RegisterValueChangedCallback(evt => dls.ConditionToTest = (DialogLogicBase)evt.newValue);
+        ConditionLabel.Add(cl2);
+        ConditionLabel.Add(oField);
+
         //Add Default
         Port DefaultOption = GeneratePort(node, Direction.Output);
+        DefaultOption.title = "Default";
         DefaultOption.contentContainer.Q<Label>("type").text = "Default";
         node.outputContainer.Add(DefaultOption);
 
