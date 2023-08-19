@@ -90,7 +90,7 @@ public class DialogGraphLogicNode : DialogGraphNode
     {
         foreach (LogicChoice lc in logicSegment.Choices)
         {
-            if (lc.l_Compare == logicSegment.lTypeUsed)
+            if (lc.l_Compare == logicSegment.lTypeUsed && logicSegment.lTypeUsed != DialogLogicSegment.LogicTypes.Boolean)
                 AddOptionPort(gv, lc.ChoiceText,lc.i_Compare);
         }
     }

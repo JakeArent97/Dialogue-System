@@ -11,6 +11,7 @@ using UnityEngine.UIElements;
 public class DialogGraphView : GraphView
 {
     public static Vector2 defNodeSize = new Vector2(100, 150);
+    public string FileName = "";
     public DialogGraphView()
     {
         styleSheets.Add(Resources.Load<StyleSheet>("DialogGraph"));
@@ -31,7 +32,15 @@ public class DialogGraphView : GraphView
 
     public static Port GeneratePort(DialogGraphNode node, Direction direction, Port.Capacity cap = Port.Capacity.Single)
     {
-        return node.InstantiatePort(Orientation.Horizontal, direction, cap, typeof(float));
+        Port p = node.InstantiatePort(Orientation.Horizontal, direction, cap, typeof(float));
+        p.AddManipulator(new EdgeConnector<Edge>(new CustomEdgeListener()));
+        return p;
+    }
+
+    public void SaveOnLink()
+    {
+        GraphSaveUtility su = GraphSaveUtility.GetInstance(this);
+        su.SaveGraph(FileName, true);
     }
 
     private DialogGraphNode GenerateEntryNode()

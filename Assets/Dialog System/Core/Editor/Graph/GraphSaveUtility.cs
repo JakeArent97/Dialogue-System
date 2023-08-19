@@ -24,12 +24,16 @@ public class GraphSaveUtility
         };
     }
 
-    public void SaveGraph(string fileName)
+    public void SaveGraph(string fileName, bool autosave = false)
     {
         if (!edges.Any())
             return;
         DialogGraphAsset asset = ScriptableObject.CreateInstance<DialogGraphAsset>();
         string filePath = "Assets/Dialog System/Dialogs/" + fileName + ".asset";
+        if (autosave)
+        {
+            filePath = "Assets/Dialog System/Dialogs/Autosaves/" + fileName + "-autosave.asset"; 
+        }
         bool updating = false;
         if (AssetDatabase.LoadAssetAtPath(filePath, typeof(DialogGraphAsset)) != null)
         {

@@ -48,12 +48,20 @@ public class DialogGraph : EditorWindow
         t.Add(new Button(() => RequestDataOperation(false, filename)) { text = "Load Data"});
 
         //Node Button
-        Button NodeCreateButton = new Button(() => { dialogGraphView.CreateNode(new DialogSegment()); });
+        Button NodeCreateButton = new Button(() => 
+        {
+            dialogGraphView.CreateNode(new DialogSegment());
+            RequestDataOperation(true, filename, true);
+        });
         NodeCreateButton.text = "Create Node";
         t.Add(NodeCreateButton);
 
         //Logic Node Button
-        Button LogicNodeCreateButton = new Button(() => { dialogGraphView.CreateNode(new DialogLogicSegment()); });
+        Button LogicNodeCreateButton = new Button(() => 
+        {
+            dialogGraphView.CreateNode(new DialogLogicSegment());
+            RequestDataOperation(true, filename, true);
+        });
         LogicNodeCreateButton.text = "Create Logic Node";
         t.Add(LogicNodeCreateButton);
 
@@ -61,21 +69,34 @@ public class DialogGraph : EditorWindow
         rootVisualElement.Add(t);
     }
 
-    public void RequestDataOperation(bool save, string fileName)
+    public void RequestDataOperation(bool save, string fileName, bool autosave = false)
     {
         if (string.IsNullOrEmpty(fileName))
             EditorUtility.DisplayDialog("No Name!","Plese put in a file name","Ok.");
-        namefield.SetValueWithoutNotify(fileName);
-        filename = fileName;
+
+        string newFilename = fileName;
+        if (newFilename.Contains("-autosave"))
+        {
+            newFilename = newFilename.Replace("-autosave", "");
+        }
+        namefield.SetValueWithoutNotify(newFilename);
+        filename = newFilename;
 
         GraphSaveUtility su = GraphSaveUtility.GetInstance(dialogGraphView);
         if (save)
         {
-            su.SaveGraph(fileName);
+            su.SaveGraph(fileName,autosave);
         }
         else
         {
-            su.LoadData("Assets/Dialog System/Dialogs/" + fileName + ".asset");
+            if (fileName.Contains("-autosave"))
+            {
+                su.LoadData("Assets/Dialog System/Dialogs/Autosaves/" + fileName + ".asset");
+            }
+            else
+            {
+                su.LoadData("Assets/Dialog System/Dialogs/" + fileName + ".asset");
+            }
         }
     }
 
@@ -83,6 +104,7 @@ public class DialogGraph : EditorWindow
     {
         dialogGraphView = new DialogGraphView
         {
+            FileName = filename,
             name = "Dialog Graph"
         };
         dialogGraphView.StretchToParentSize();
