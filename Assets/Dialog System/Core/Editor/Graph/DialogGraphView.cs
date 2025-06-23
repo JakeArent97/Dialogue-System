@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -12,6 +13,7 @@ public class DialogGraphView : GraphView
 {
     public static Vector2 defNodeSize = new Vector2(100, 150);
     public string FileName = "";
+    public string FileDirectory = "Assets/Dialog System/Dialogs/";
     public DialogGraphView()
     {
         styleSheets.Add(Resources.Load<StyleSheet>("DialogGraph"));
@@ -212,9 +214,7 @@ public class DialogGraphView : GraphView
     public void AddChoicePort(DialogGraphNode node, string portName = "", DialogValidator dv = null,bool loadFunc = false)
     {
         Port genPort = GeneratePort(node, Direction.Output);
-        //Remove old label
-        Label oldLabel = genPort.contentContainer.Q<Label>("type");
-        genPort.contentContainer.Remove(oldLabel);
+        
         if (string.IsNullOrEmpty(portName))
         {
             var portCount = node.outputContainer.childCount;
@@ -222,6 +222,13 @@ public class DialogGraphView : GraphView
         }
         else
             genPort.portName = portName;
+
+        //Setup the Foldout
+        Foldout fold = new Foldout
+        {
+            text = genPort.portName + "- Info",
+            value=false
+        };
 
         //Add port name customization and deletion
         Label bufferLabel = new Label();
@@ -231,7 +238,11 @@ public class DialogGraphView : GraphView
             name = string.Empty,
             value = genPort.portName
         };
-        textField.RegisterValueChangedCallback(evt => genPort.portName = evt.newValue);
+        textField.RegisterValueChangedCallback(evt => 
+        {
+            genPort.portName = evt.newValue;
+            fold.text = evt.newValue + "- Info";
+        });
 
         //Add Validators
         ObjectField validators = new ObjectField();
@@ -243,7 +254,7 @@ public class DialogGraphView : GraphView
 
         var deleteButton = new Button(() => RemovePort(node, genPort))
         {
-            text = "x"
+            text = "Delete"
         };
         //Check if more than 2 ports
         if (node is DialogGraphStandardNode)
@@ -254,13 +265,21 @@ public class DialogGraphView : GraphView
                 stanNode.choicesBool.value = true;
             }
         }
-        genPort.contentContainer.Add(bufferLabel);
-        genPort.contentContainer.Add(textField);
-        genPort.contentContainer.Add(validators);
-        genPort.contentContainer.Add(deleteButton);
+
+        //Add the elements to a foldout
+        
+        node.outputContainer.Add(genPort);
+        fold.Add(textField);
+        fold.Add(validators);
+        fold.Add(deleteButton);
+        node.outputContainer.Add(fold);
+        //genPort.contentContainer.Add(bufferLabel);
+        //genPort.contentContainer.Insert(0,textField);
+        //genPort.contentContainer.Insert(0,validators);
+        //genPort.contentContainer.Insert(0,deleteButton);
 
         //Add port content
-        node.outputContainer.Add(genPort);
+        
         node.RefreshExpandedState();
         node.RefreshPorts();
     }
@@ -282,7 +301,18 @@ public class DialogGraphView : GraphView
                 dsn.choicesBool.value = false;
             }
         }
-
+        //Find the corresponding foldout:
+        VisualElement targ = null;
+        foreach (VisualElement v in dialogNode.outputContainer.Children())
+        {
+            if (v is Foldout)
+            {
+                Foldout f = v as Foldout;
+                if (f.text == generatedPort.portName + "- Info")
+                    targ = v;
+            }
+        }
+        dialogNode.outputContainer.Remove(targ);
         dialogNode.outputContainer.Remove(generatedPort);
         dialogNode.RefreshExpandedState();
         dialogNode.RefreshPorts();

@@ -124,8 +124,6 @@ public class DialogParser : MonoBehaviour
         if (ds.EffectsOnEnter != null)
             ds.EffectsOnEnter.DoEffect();
         StartCoroutine(TextWriteout(1));
-       
-        
     }
 
     [Header("Writing Variables")]

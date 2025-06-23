@@ -10,5 +10,10 @@ public class DialogGraphNode : Node
 
     public bool EntryPoint = false;
 
+    public DialogGraphNode() //: base("Assets/Dialog System/NodeUI.uxml")
+    {
+        
+    }
+
     //public bool StandardNode = true;
 }

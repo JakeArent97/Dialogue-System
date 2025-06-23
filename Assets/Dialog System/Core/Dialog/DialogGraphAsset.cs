@@ -9,6 +9,7 @@ public class DialogGraphAsset : ScriptableObject
     public string EntryGUID;
     public List<NodeData> Nodes = new List<NodeData>();
     public List<NodeLinkData> Links = new List<NodeLinkData>();
+    public string directory;
 
     public DialogSegment GetFirstSegment()
     {

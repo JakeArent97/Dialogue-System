@@ -14,7 +14,9 @@ public class DialogGraphAsset_Inspector : Editor
         if (dga != null)
         {
             DialogGraph dg = EditorWindow.GetWindow<DialogGraph>();
-            dg.RequestDataOperation(false, dga.name);
+            string dir = AssetDatabase.GetAssetPath(dga.GetInstanceID());
+            dir = dir.Replace(dga.name + ".asset", "");
+            dg.RequestDataOperation(false, dga.name,directory:dir);
             dg.GetDGV().FrameOrigin();
             return true;
         }

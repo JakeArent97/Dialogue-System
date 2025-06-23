@@ -40,13 +40,13 @@ public class DialogGraphLogicNode : DialogGraphNode
         {
             //Add True
             Port TrueOption = DialogGraphView.GeneratePort(this, Direction.Output);
-            TrueOption.title = "True";
+            TrueOption.portName = "True";
             TrueOption.contentContainer.Q<Label>("type").text = "True";
             outputContainer.Add(TrueOption);
 
             //Add False
             Port FalseOption = DialogGraphView.GeneratePort(this, Direction.Output);
-            FalseOption.title = "False";
+            FalseOption.portName = "False";
             FalseOption.contentContainer.Q<Label>("type").text = "False";
             outputContainer.Add(FalseOption);
 
@@ -55,7 +55,8 @@ public class DialogGraphLogicNode : DialogGraphNode
         {
             //Add Default
             Port DefaultOption = DialogGraphView.GeneratePort(this, Direction.Output);
-            DefaultOption.title = "Default";
+            DefaultOption.portName = "Default";
+            //DefaultOption.title = "Default";
             DefaultOption.contentContainer.Q<Label>("type").text = "Default";
             outputContainer.Add(DefaultOption);
 
@@ -98,9 +99,7 @@ public class DialogGraphLogicNode : DialogGraphNode
     private void AddOptionPort(GraphView gv, string portName = "", DialogLogicSegment.IntCompTypes iComp = DialogLogicSegment.IntCompTypes.Equals)
     {
         Port genPort = DialogGraphView.GeneratePort(this, Direction.Output);
-        //Remove old label
-        Label oldLabel = genPort.contentContainer.Q<Label>("type");
-        genPort.contentContainer.Remove(oldLabel);
+        
         if (string.IsNullOrEmpty(portName))
         {
             var portCount = outputContainer.childCount;
@@ -108,6 +107,13 @@ public class DialogGraphLogicNode : DialogGraphNode
         }
         else
             genPort.portName = portName;
+
+        //Setup the Foldout
+        Foldout fold = new Foldout
+        {
+            text = genPort.portName + "- Info",
+            value = false
+        };
 
         //Add port name customization and deletion
         Label bufferLabel = new Label();
@@ -118,28 +124,32 @@ public class DialogGraphLogicNode : DialogGraphNode
             value = genPort.portName
         };
         textField.style.minWidth = 30;
-        textField.RegisterValueChangedCallback(evt => genPort.portName = evt.newValue);
-        
+        textField.RegisterValueChangedCallback(evt =>
+        {
+            genPort.portName = evt.newValue;
+            fold.text = evt.newValue + "- Info";
+        });
+
         //Delete Button
         var deleteButton = new Button(() => RemovePort(this, genPort,gv))
         {
-            text = "x"
+            text = "Delete"
         };
 
         //Int Compare Type
         EnumField ef = new EnumField(iComp);
-
-        genPort.contentContainer.Add(bufferLabel);
-        genPort.contentContainer.Add(textField);
+        
+        fold.Add(textField);
         if (logicSegment.lTypeUsed == DialogLogicSegment.LogicTypes.Integer)
         {
-            genPort.contentContainer.Add(ef);
+            fold.Add(ef);
         }
-        genPort.contentContainer.Add(deleteButton);
+        fold.Add(deleteButton);
         
 
         //Add port content
         outputContainer.Add(genPort);
+        outputContainer.Add(fold);
         RefreshExpandedState();
         RefreshPorts();
     }
@@ -162,6 +172,18 @@ public class DialogGraphLogicNode : DialogGraphNode
             }
         }
 
+        //Find the corresponding foldout:
+        VisualElement targ = null;
+        foreach (VisualElement v in dialogNode.outputContainer.Children())
+        {
+            if (v is Foldout)
+            {
+                Foldout f = v as Foldout;
+                if (f.text == generatedPort.portName + "- Info")
+                    targ = v;
+            }
+        }
+        dialogNode.outputContainer.Remove(targ);
         dialogNode.outputContainer.Remove(generatedPort);
         dialogNode.RefreshExpandedState();
         dialogNode.RefreshPorts();

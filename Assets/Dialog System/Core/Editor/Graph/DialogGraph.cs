@@ -44,14 +44,14 @@ public class DialogGraph : EditorWindow
         t.Add(name);
 
         //Save and Load buttons
-        t.Add(new Button(() => RequestDataOperation(true, filename)) { text = "Save Data"});
-        t.Add(new Button(() => RequestDataOperation(false, filename)) { text = "Load Data"});
+        t.Add(new Button(() => RequestDataOperation(true, filename,directory:dialogGraphView.FileDirectory)) { text = "Save Data"});
+        t.Add(new Button(() => RequestDataOperation(false, filename,directory:dialogGraphView.FileDirectory)) { text = "Load Data"});
 
         //Node Button
         Button NodeCreateButton = new Button(() => 
         {
             dialogGraphView.CreateNode(new DialogSegment());
-            RequestDataOperation(true, filename, true);
+            RequestDataOperation(true, filename, true,dialogGraphView.FileDirectory);
         });
         NodeCreateButton.text = "Create Node";
         t.Add(NodeCreateButton);
@@ -60,7 +60,7 @@ public class DialogGraph : EditorWindow
         Button LogicNodeCreateButton = new Button(() => 
         {
             dialogGraphView.CreateNode(new DialogLogicSegment());
-            RequestDataOperation(true, filename, true);
+            RequestDataOperation(true, filename, true,dialogGraphView.FileDirectory);
         });
         LogicNodeCreateButton.text = "Create Logic Node";
         t.Add(LogicNodeCreateButton);
@@ -69,8 +69,9 @@ public class DialogGraph : EditorWindow
         rootVisualElement.Add(t);
     }
 
-    public void RequestDataOperation(bool save, string fileName, bool autosave = false)
+    public void RequestDataOperation(bool save, string fileName, bool autosave = false, string directory = "Assets/Dialog System/Dialogs/")
     {
+        dialogGraphView.FileDirectory = directory;
         if (string.IsNullOrEmpty(fileName))
             EditorUtility.DisplayDialog("No Name!","Plese put in a file name","Ok.");
 
@@ -91,11 +92,11 @@ public class DialogGraph : EditorWindow
         {
             if (fileName.Contains("-autosave"))
             {
-                su.LoadData("Assets/Dialog System/Dialogs/Autosaves/" + fileName + ".asset");
+                su.LoadData(dialogGraphView.FileDirectory + fileName + ".asset");
             }
             else
             {
-                su.LoadData("Assets/Dialog System/Dialogs/" + fileName + ".asset");
+                su.LoadData(dialogGraphView.FileDirectory + fileName + ".asset");
             }
         }
     }

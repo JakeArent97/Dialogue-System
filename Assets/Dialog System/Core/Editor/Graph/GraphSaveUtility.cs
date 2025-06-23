@@ -29,10 +29,10 @@ public class GraphSaveUtility
         if (!edges.Any())
             return;
         DialogGraphAsset asset = ScriptableObject.CreateInstance<DialogGraphAsset>();
-        string filePath = "Assets/Dialog System/Dialogs/" + fileName + ".asset";
+        string filePath = targetGraph.FileDirectory + fileName + ".asset";
         if (autosave)
         {
-            filePath = "Assets/Dialog System/Dialogs/Autosaves/" + fileName + "-autosave.asset"; 
+            filePath = targetGraph.FileDirectory + fileName + "-autosave.asset"; 
         }
         bool updating = false;
         if (AssetDatabase.LoadAssetAtPath(filePath, typeof(DialogGraphAsset)) != null)
@@ -73,6 +73,10 @@ public class GraphSaveUtility
                     stan.dialogSegment.Choices.Clear();
                     foreach (VisualElement child in n.outputContainer.Children())
                     {
+                        if (child is Foldout)
+                        {
+                            continue;
+                        }
                         Port childPort = (Port)child;
                         DialogChoice dc = new DialogChoice();
                         dc.ChoiceText = childPort.portName;
